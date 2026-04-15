@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrazione</title>
+  <link rel="stylesheet" href="stile.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="login.html" class="back-btn">←</a>
+</div>
+
+<header class="main-header">
+  <div class="overlay">
+    <h1>Crea un account</h1>
+  </div>
+</header>
+
+<main class="content-wrapper">
+  <form id="registration-form">
+
+    <div class="form-group">
+      <label for="nome">Nome completo:</label>
+      <input type="text" id="nome" name="nome" required />
+    </div>
+
+    <div class="form-group">
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required />
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <div class="password-wrapper">
+        <input type="password" id="password" name="password" required />
+        <button type="button" class="toggle-password" onclick="vediPassword()" aria-label="Mostra password"></button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="conferma">Conferma password:</label>
+      <div class="password-wrapper">
+        <input type="password" id="conferma" name="conferma" required />
+        <button type="button" class="toggle-password" onclick="vediConferma()" aria-label="Mostra conferma password"></button>
+      </div>
+    </div>
+
+    <p id="reg-messaggio" class="reg-msg" style="display:none;"></p>
+
+    <div class="button-container">
+      <button type="submit" class="button donate-button">Registrati</button>
+    </div>
+
+  </form>
+</main>
+
+<style>
+  .reg-msg {
+    text-align: center;
+    font-weight: 600;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid;
+  }
+  .reg-msg.errore   { color: #c0392b; background: #fdecea; border-color: #e74c3c; }
+  .reg-msg.successo { color: #1e7e34; background: #eafaf1; border-color: #27ae60; }
+</style>
+
+<script src="script.js"></script>
+<script>
+  function vediConferma() {
+    const input = document.getElementById("conferma");
+    const btn   = input.closest('.password-wrapper').querySelector('.toggle-password');
+    if (input.type === "password") {
+      input.type = "text";
+      btn.classList.add("visible");
+    } else {
+      input.type = "password";
+      btn.classList.remove("visible");
+    }
+  }
+
+  document.getElementById('registration-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const nome     = document.getElementById('nome').value.trim();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const conferma = document.getElementById('conferma').value;
+    const msg      = document.getElementById('reg-messaggio');
+
+    msg.style.display = 'none';
+    msg.className     = 'reg-msg';
+
+    if (password.length < 8) {
+      mostraMsg(msg, 'errore', 'La password deve avere almeno 8 caratteri.');
+      return;
+    }
+    if (password !== conferma) {
+      mostraMsg(msg, 'errore', 'Le password non coincidono.');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('nome',     nome);
+      formData.append('username', username);
+      formData.append('password', password);
+      formData.append('conferma', conferma);
+
+      const res  = await fetch('registrazione.php', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (data.success) {
+        mostraMsg(msg, 'successo', data.message);
+        document.getElementById('registration-form').reset();
+        setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+      } else {
+        mostraMsg(msg, 'errore', data.message);
+      }
+    } catch (err) {
+      mostraMsg(msg, 'errore', 'Errore di connessione. Riprova.');
+    }
+  });
+
+  function mostraMsg(el, tipo, testo) {
+    el.textContent   = testo;
+    el.classList.add(tipo);
+    el.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <link rel="stylesheet" href="stile.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="top-bar">
+    <a href="index.html" class="back-btn">←</a>
+    <a href="segnalazione.php" class="button">Effetua Segnalazione</a>
+</div>
+
+  <header class="main-header">
+    <div class="overlay">
+      <h1>Effetua Login</h1>
+    </div>
+  </header>
+
+  <main class="content-wrapper">
+    <form id="registration-form">
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <div class="password-wrapper">
+         <input type="password" id="password" required>
+         <button type="button" class="toggle-password" onclick="vediPassword()" aria-label="Mostra password"></button>
+        </div>
+      </div>
+      <div class="button-container-row">
+        <button type="submit" class="button donate-button" onclick="Ricerca()">Accedi</button>
+        <button type="button" class="button registrati-button" onclick="window.location.href='registrazione.html'">Registrati</button>
+      </div>
+    </form>
+  </main>
+
+  <style>
+    .button-container-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 30px;
+      gap: 12px;
+    }
+    .registrati-button {
+      background-color: transparent;
+      color: #1976d2;
+      border: 2px solid #1976d2;
+    }
+    .registrati-button:hover {
+      background-color: #e3ecf5;
+      transform: translateY(-2px);
+    }
+  </style>
+  
+  <script src="script.js"></script>
+  <script>
+    document.getElementById('registration-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      // Rimuove eventuale messaggio precedente
+      let msg = document.getElementById('login-msg');
+      if (!msg) {
+        msg = document.createElement('p');
+        msg.id = 'login-msg';
+        msg.style.cssText = 'text-align:center;font-weight:600;margin-top:12px;padding:10px;border-radius:6px;border:1px solid;';
+        this.insertBefore(msg, this.querySelector('.button-container-row'));
+      }
+      msg.style.display = 'none';
+
+      if (!username || !password) {
+        mostraLoginMsg(msg, '#c0392b', '#fdecea', '#e74c3c', 'Inserisci username e password.');
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('password', password);
+
+        const res  = await fetch('login.php', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (data.success) {
+          window.location.href = data.redirect;
+        } else {
+          mostraLoginMsg(msg, '#c0392b', '#fdecea', '#e74c3c', data.message);
+        }
+      } catch (err) {
+        mostraLoginMsg(msg, '#c0392b', '#fdecea', '#e74c3c', 'Errore di connessione. Riprova.');
+      }
+    });
+
+    function mostraLoginMsg(el, color, bg, border, testo) {
+      el.textContent        = testo;
+      el.style.color        = color;
+      el.style.background   = bg;
+      el.style.borderColor  = border;
+      el.style.display      = 'block';
+    }
+  </script>
+</body>
+</html>
