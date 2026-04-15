@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+ 
 $host     = 'localhost';
 $dbname   = 'whistleblowing_db';
 $user     = 'root';
