@@ -13,14 +13,21 @@ if ($conn->connect_error) {
     exit;
 }
 
-$nome = trim($_POST['nome']     ?? '');
-$username = trim($_POST['username'] ?? '');
-$password = trim($_POST['password'] ?? '');
-$conferma = trim($_POST['conferma'] ?? '');
+$nome      = trim($_POST['nome'] ?? '');
+$username  = trim($_POST['username'] ?? '');
+$email     = trim($_POST['email'] ?? '');
+$password  = $_POST['password'] ?? '';
+$conferma  = $_POST['conferma'] ?? '';
 
 // Campi obbligatori
-if (empty($nome) || empty($username) || empty($password) || empty($conferma)) {
+if (empty($nome) || empty($username) || empty($email) || empty($password) || empty($conferma)) {
     echo json_encode(["success" => false, "message" => "Tutti i campi sono obbligatori."]);
+    exit;
+}
+
+// Validazione email
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(["success" => false, "message" => "Email non valida."]);
     exit;
 }
 
@@ -36,29 +43,34 @@ if ($password !== $conferma) {
     exit;
 }
 
-// Controlla se lo username è già in uso
-$check = $conn->prepare("SELECT id FROM utenti WHERE username = ?");
-$check->bind_param("s", $username);
+// Controlla se username o email esistono
+$check = $conn->prepare("SELECT id FROM utenti WHERE username = ? OR email = ?");
+$check->bind_param("ss", $username, $email);
 $check->execute();
 $check->store_result();
 
 if ($check->num_rows > 0) {
-    echo json_encode(["success" => false, "message" => "Username già in uso. Scegline un altro."]);
+    echo json_encode(["success" => false, "message" => "Username o email già in uso."]);
     $check->close();
     $conn->close();
     exit;
 }
 $check->close();
 
-// Hash sicuro della password
+// Hash password
 $hash = password_hash($password, PASSWORD_DEFAULT);
 
-// Inserimento (ruolo sempre 'utente' per la registrazione pubblica)
-$stmt = $conn->prepare("INSERT INTO utenti (nome, username, password, ruolo) VALUES (?, ?, ?, 'utente')");
-$stmt->bind_param("sss", $nome, $username, $hash);
+// INSERT con email
+$stmt = $conn->prepare("INSERT INTO utenti (nome, username, email, password, ruolo) VALUES (?, ?, ?, ?, 'utente')");
+$stmt->bind_param("ssss", $nome, $username, $email, $hash);
 
 if ($stmt->execute()) {
+
+    require 'mail.php';
+    emailRegistrazione($email, $nome);
+
     echo json_encode(["success" => true, "message" => "Registrazione completata! Verrai reindirizzato al login."]);
+
 } else {
     echo json_encode(["success" => false, "message" => "Errore durante la registrazione. Riprova."]);
 }

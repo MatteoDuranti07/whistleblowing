@@ -1,68 +1,116 @@
 <?php
 session_start();
- 
-$host     = 'localhost';
-$dbname   = 'whistleblowing_db';
-$user     = 'root';
-$password = '';
 
-$msg  = "";
+if (
+    !isset($_SESSION['id']) ||
+    !isset($_SESSION['ruolo']) ||
+    $_SESSION['ruolo'] !== 'admin'
+) {
+    header("Location: login.html");
+    exit;
+}
+
+$conn = new mysqli(
+    "localhost",
+    "root",
+    "",
+    "whistleblowing_db"
+);
+
+if ($conn->connect_error) {
+    die("Errore connessione database");
+}
+
+$id = isset($_GET['id'])
+    ? (int) $_GET['id']
+    : 0;
+
+$stmt = $conn->prepare("
+    SELECT *
+    FROM utenti
+    WHERE id = ?
+");
+
+$stmt->bind_param("i", $id);
+
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+$utente = $result->fetch_assoc();
+
+if (!$utente) {
+    die("Utente non trovato");
+}
+
+$msg = "";
 $tipo = "";
 
-try {
-    $pdo = new PDO(
-        "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
-        $user,
-        $password,
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+    $password = $_POST['password'] ?? '';
+    $conferma = $_POST['conferma'] ?? '';
 
-    if ($id <= 0) {
-        header("Location: gestione_utenti.php");
-        exit;
-    }
+    if (empty($password) || empty($conferma)) {
 
-    $stmt = $pdo->prepare("SELECT * FROM utenti WHERE id = ?");
-    $stmt->execute([$id]);
-    $utente = $stmt->fetch(PDO::FETCH_ASSOC);
+        $msg = "Compila tutti i campi";
+        $tipo = "errore";
 
-    if (!$utente) {
-        header("Location: gestione_utenti.php");
-        exit;
-    }
+    } elseif (strlen($password) < 8) {
 
-    if ($_SERVER["REQUEST_METHOD"] === "POST") {
-        $nuovo_ruolo    = $_POST['ruolo'] ?? $utente['ruolo'];
-        $nuova_password = $_POST['password'] ?? '';
-        $conferma       = $_POST['conferma'] ?? '';
+        $msg = "La password deve avere almeno 8 caratteri";
+        $tipo = "errore";
 
-        if ($nuova_password !== '' && strlen($nuova_password) < 8) {
-            $msg  = "La password deve essere di almeno 8 caratteri";
-            $tipo = "errore";
-        } elseif ($nuova_password !== '' && $nuova_password !== $conferma) {
-            $msg  = "Le password non coincidono";
-            $tipo = "errore";
-        } else {
-            if ($nuova_password !== '') {
-                $hash = password_hash($nuova_password, PASSWORD_DEFAULT);
-                $upd  = $pdo->prepare("UPDATE utenti SET ruolo = ?, password = ? WHERE id = ?");
-                $upd->execute([$nuovo_ruolo, $hash, $id]);
-            } else {
-                $upd = $pdo->prepare("UPDATE utenti SET ruolo = ? WHERE id = ?");
-                $upd->execute([$nuovo_ruolo, $id]);
-            }
+    } elseif ($password !== $conferma) {
 
-            header("Location: gestione_utenti.php");
+        $msg = "Le password non coincidono";
+        $tipo = "errore";
+
+    } else {
+
+        $hash = password_hash(
+            $password,
+            PASSWORD_DEFAULT
+        );
+
+        $update = $conn->prepare("
+            UPDATE utenti
+            SET password = ?
+            WHERE id = ?
+        ");
+
+        $update->bind_param(
+            "si",
+            $hash,
+            $id
+        );
+
+        if ($update->execute()) {
+
+            require 'mail.php';
+
+            emailCambioPassword(
+                $utente['email'],
+                $utente['nome']
+            );
+
+            header(
+                "Location: gestione_utenti.php?modifica=1"
+            );
+
             exit;
-        }
-    }
 
-} catch (PDOException $e) {
-    die("Errore: " . $e->getMessage());
+        } else {
+
+            $msg = "Errore aggiornamento";
+            $tipo = "errore";
+        }
+
+        $update->close();
+    }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -97,6 +145,10 @@ try {
       <div class="info-row">
         <span class="info-label">Username</span>
         <span class="info-value"><?= htmlspecialchars($utente['username']) ?></span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Email</span>
+        <span class="info-value"><?= htmlspecialchars($utente['email']) ?></span>
       </div>
     </div>
 

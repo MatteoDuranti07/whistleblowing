@@ -1,3 +1,13 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['id'])) {
+    header("Location: login.html");
+    exit;
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -16,6 +26,7 @@
     <h3>Menu</h3>
     <a href="">Avvisi</a>
     <a href="">Incarichi</a>
+    <a href="aggiorna_password.php">Aggiorna Password</a>
   </div>
 
   <div class="home-top-bar">

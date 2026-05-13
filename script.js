@@ -6,7 +6,7 @@ function Menu() {
 /* LOGOUT */
 function logout() {
   if (confirm("Sei sicuro di voler uscire?")) {
-    window.location.href = "login.html";
+    window.location.href = "logout.php";
   }
 }
 

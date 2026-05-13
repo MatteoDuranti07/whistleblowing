@@ -1,3 +1,16 @@
+<?php
+session_start();
+
+if (
+    !isset($_SESSION['id']) ||
+    !isset($_SESSION['ruolo']) ||
+    $_SESSION['ruolo'] !== 'admin'
+) {
+    header("Location: login.html");
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -14,7 +27,7 @@
 
   <div id="sideMenu" class="side-menu">
     <h3>Menu</h3>
-    <a href="registro_segnalazioni.html">Registro segnalazioni</a>
+    <a href="registro_segnalazioni.php">Registro segnalazioni</a>
     <a href="gestione_utenti.php">Gestione utenti</a>
   </div>
 

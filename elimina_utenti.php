@@ -1,33 +1,76 @@
 <?php
 session_start();
 
-$host     = 'localhost';
-$dbname   = 'whistleblowing_db';
-$user     = 'root';
-$password = '';
+if (
+    !isset($_SESSION['id']) ||
+    !isset($_SESSION['ruolo']) ||
+    $_SESSION['ruolo'] !== 'admin'
+) {
+
+    echo json_encode([
+        'success' => false,
+        'message' => 'Accesso negato'
+    ]);
+
+    exit;
+}
 
 header('Content-Type: application/json');
 
-try {
-    $pdo = new PDO(
-        "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
-        $user,
-        $password,
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
+$conn = new mysqli(
+    "localhost",
+    "root",
+    "",
+    "whistleblowing_db"
+);
 
-    $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+if ($conn->connect_error) {
 
-    if ($id <= 0) {
-        echo json_encode(['success' => false, 'message' => 'ID non valido.']);
-        exit;
+    echo json_encode([
+        'success' => false,
+        'message' => 'Errore connessione database'
+    ]);
+
+    exit;
+}
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['id'])
+) {
+
+    $id = (int) $_POST['id'];
+
+    $stmt = $conn->prepare("
+        DELETE FROM utenti
+        WHERE id = ?
+    ");
+
+    $stmt->bind_param("i", $id);
+
+    if ($stmt->execute()) {
+
+        echo json_encode([
+            'success' => true
+        ]);
+
+    } else {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Errore eliminazione'
+        ]);
     }
 
-    $stmt = $pdo->prepare("DELETE FROM utenti WHERE id = ?");
-    $stmt->execute([$id]);
+    $stmt->close();
 
-    echo json_encode(['success' => true]);
+} else {
 
-} catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Richiesta non valida'
+    ]);
 }
+
+$conn->close();
+?>

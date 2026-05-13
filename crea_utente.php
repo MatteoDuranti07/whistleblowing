@@ -1,56 +1,119 @@
 <?php
 session_start();
 
+if (
+    !isset($_SESSION['id']) ||
+    !isset($_SESSION['ruolo']) ||
+    $_SESSION['ruolo'] !== 'admin'
+) {
+    header("Location: login.html");
+    exit;
+}
+
 $msg = "";
 $tipo = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $conn = new mysqli("localhost", "root", "", "whistleblowing_db");
+    $conn = new mysqli(
+        "localhost",
+        "root",
+        "",
+        "whistleblowing_db"
+    );
 
     if ($conn->connect_error) {
+
         $msg = "Errore connessione database";
         $tipo = "errore";
+
     } else {
 
         $nome      = trim($_POST['nome'] ?? '');
         $username  = trim($_POST['username'] ?? '');
+        $email     = trim($_POST['email'] ?? '');
         $password  = $_POST['password'] ?? '';
         $conferma  = $_POST['conferma'] ?? '';
         $ruolo     = $_POST['ruolo'] ?? 'utente';
 
-        if (!$nome || !$username || !$password || !$conferma) {
+        if (
+            empty($nome) ||
+            empty($username) ||
+            empty($email) ||
+            empty($password) ||
+            empty($conferma)
+        ) {
+
             $msg = "Compila tutti i campi";
             $tipo = "errore";
-        } elseif (strlen($password) < 8) {
-            $msg = "Password minimo 8 caratteri";
+
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+            $msg = "Email non valida";
             $tipo = "errore";
+
+        } elseif (strlen($password) < 8) {
+
+            $msg = "La password deve avere almeno 8 caratteri";
+            $tipo = "errore";
+
         } elseif ($password !== $conferma) {
+
             $msg = "Le password non coincidono";
             $tipo = "errore";
+
         } else {
 
-            $check = $conn->prepare("SELECT id FROM utenti WHERE username = ?");
-            $check->bind_param("s", $username);
+            $check = $conn->prepare("
+                SELECT id
+                FROM utenti
+                WHERE username = ?
+                OR email = ?
+            ");
+
+            $check->bind_param("ss", $username, $email);
+
             $check->execute();
+
             $check->store_result();
 
             if ($check->num_rows > 0) {
-                $msg = "Username già esistente";
+
+                $msg = "Username o email già esistenti";
                 $tipo = "errore";
+
             } else {
-                $check->close();
 
-                $hash = password_hash($password, PASSWORD_DEFAULT);
+                $hash = password_hash(
+                    $password,
+                    PASSWORD_DEFAULT
+                );
 
-                $stmt = $conn->prepare("INSERT INTO utenti (nome, username, password, ruolo) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param("ssss", $nome, $username, $hash, $ruolo);
+                $stmt = $conn->prepare("
+                    INSERT INTO utenti
+                    (nome, username, email, password, ruolo)
+                    VALUES (?, ?, ?, ?, ?)
+                ");
+
+                $stmt->bind_param(
+                    "sssss",
+                    $nome,
+                    $username,
+                    $email,
+                    $hash,
+                    $ruolo
+                );
 
                 if ($stmt->execute()) {
-                    // 🔥 REDIRECT
-                    header("Location: gestione_utenti.php?success=1");
+
+                    header(
+                        "Location: gestione_utenti.php?success=1"
+                    );
+
                     exit;
+
                 } else {
+
                     $msg = "Errore salvataggio";
                     $tipo = "errore";
                 }
@@ -58,8 +121,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $stmt->close();
             }
 
-            $conn->close();
+            $check->close();
         }
+
+        $conn->close();
     }
 }
 ?>
@@ -87,7 +152,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <main class="content-wrapper">
 
-  <!-- 🔥 BOX CENTRATO COME REGISTRAZIONE -->
   <div class="form-box">
 
     <form method="POST">
@@ -100,6 +164,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <div class="form-group">
         <label>Username:</label>
         <input type="text" name="username" required />
+      </div>
+
+      <div class="form-group">
+        <label>Email:</label>
+        <input type="text" name="email" required />
       </div>
 
       <div class="form-group">
