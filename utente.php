@@ -24,8 +24,8 @@ if (!isset($_SESSION['id'])) {
 
   <div id="sideMenu" class="side-menu">
     <h3>Menu</h3>
-    <a href="">Avvisi</a>
-    <a href="">Incarichi</a>
+    <a href="avvisi.php">Avvisi</a>
+    <a href="incarichi.php">Incarichi</a>
     <a href="aggiorna_password.php">Aggiorna Password</a>
   </div>
 
@@ -68,5 +68,3 @@ if (!isset($_SESSION['id'])) {
   <script src="script.js"></script>
 </body>
 </html>
-
-    

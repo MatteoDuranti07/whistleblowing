@@ -29,6 +29,8 @@ if (
     <h3>Menu</h3>
     <a href="registro_segnalazioni.php">Registro segnalazioni</a>
     <a href="gestione_utenti.php">Gestione utenti</a>
+    <a href="aggiungi_avviso.php">Pubblica avviso</a>
+    <a href="aggiungi_incarico.php">Assegna incarico</a>
   </div>
 
   <div class="home-top-bar">
@@ -41,9 +43,9 @@ if (
     <h1>Area Amministratore</h1>
 
     <p class="home-description">
-      Questa è l’area riservata agli amministratori del sistema.
-      Da qui è possibile monitorare le segnalazioni ricevute e
-      gestire gli utenti della piattaforma.
+      Questa è l'area riservata agli amministratori del sistema.
+      Da qui è possibile monitorare le segnalazioni ricevute, gestire gli utenti
+      della piattaforma, pubblicare avvisi e assegnare incarichi.
     </p>
 
     <section class="features">
@@ -60,7 +62,23 @@ if (
         <h3>Gestione utenti</h3>
         <p>
           Visualizza, modifica e gestisci gli account degli utenti
-          autorizzati all’accesso al sistema.
+          autorizzati all'accesso al sistema.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3>Pubblica avviso</h3>
+        <p>
+          Crea e pubblica comunicazioni aziendali visibili a tutti
+          gli utenti nella loro area personale.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3>Assegna incarico</h3>
+        <p>
+          Assegna compiti specifici agli utenti della piattaforma,
+          impostando descrizione, scadenza e stato dell'incarico.
         </p>
       </div>
 
