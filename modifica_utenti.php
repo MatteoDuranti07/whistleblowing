@@ -1,15 +1,22 @@
 <?php
+
+// avvia la sessione utente
 session_start();
 
+// controlla se l'utente è admin
 if (
     !isset($_SESSION['id']) ||
     !isset($_SESSION['ruolo']) ||
     $_SESSION['ruolo'] !== 'admin'
 ) {
+
+    // reindirizza al login
     header("Location: login.html");
+
     exit;
 }
 
+// connessione al database
 $conn = new mysqli(
     "localhost",
     "root",
@@ -17,40 +24,41 @@ $conn = new mysqli(
     "whistleblowing_db"
 );
 
+// controlla errori connessione
 if ($conn->connect_error) {
+
     die("Errore connessione database");
 }
 
+// recupera id utente dalla url
 $id = isset($_GET['id'])
     ? (int) $_GET['id']
     : 0;
 
+// prepara query sql
 $stmt = $conn->prepare("
     SELECT *
     FROM utenti
     WHERE id = ?
 ");
-
 $stmt->bind_param("i", $id);
-
 $stmt->execute();
 
 $result = $stmt->get_result();
 
 $utente = $result->fetch_assoc();
-
 if (!$utente) {
+
     die("Utente non trovato");
 }
 
 $msg = "";
 $tipo = "";
 
+// controlla richiesta post
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
     $password = $_POST['password'] ?? '';
     $conferma = $_POST['conferma'] ?? '';
-
     if (empty($password) || empty($conferma)) {
 
         $msg = "Compila tutti i campi";
@@ -84,7 +92,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $hash,
             $id
         );
-
         if ($update->execute()) {
 
             require 'mail.php';
@@ -106,6 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $tipo = "errore";
         }
 
+        // chiude query update
         $update->close();
     }
 }
@@ -114,91 +122,192 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <!DOCTYPE html>
 <html lang="it">
 <head>
+
+  <!-- impostazioni pagina -->
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0" />
+
   <title>Modifica Utente</title>
+
+  <!-- collegamento css -->
   <link rel="stylesheet" href="stile.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- font google -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+        rel="stylesheet">
+
 </head>
+
 <body>
 
+<!-- pulsante torna indietro -->
 <div class="top-bar">
   <a href="gestione_utenti.php" class="back-btn">←</a>
 </div>
 
+<!-- intestazione pagina -->
 <header class="main-header">
+
   <div class="overlay">
     <h1>Modifica Utente</h1>
   </div>
+
 </header>
 
 <main class="content-wrapper">
+
   <div class="form-box">
 
+    <!-- sezione dati utente -->
     <div class="info-section">
+
       <h3>Dati utente</h3>
 
       <div class="info-row">
+
         <span class="info-label">Nome</span>
-        <span class="info-value"><?= htmlspecialchars($utente['nome']) ?></span>
+
+        <span class="info-value">
+          <?= htmlspecialchars($utente['nome']) ?>
+        </span>
+
       </div>
+
       <div class="info-row">
+
         <span class="info-label">Username</span>
-        <span class="info-value"><?= htmlspecialchars($utente['username']) ?></span>
+
+        <span class="info-value">
+          <?= htmlspecialchars($utente['username']) ?>
+        </span>
+
       </div>
+
       <div class="info-row">
+
         <span class="info-label">Email</span>
-        <span class="info-value"><?= htmlspecialchars($utente['email']) ?></span>
+
+        <span class="info-value">
+          <?= htmlspecialchars($utente['email']) ?>
+        </span>
+
       </div>
+
     </div>
 
     <hr class="divider" />
 
+    <!-- modulo modifica -->
     <form method="POST">
 
+      <!-- selezione ruolo -->
       <div class="form-group">
+
         <label>Ruolo:</label>
+
         <select name="ruolo">
-          <option value="utente" <?= $utente['ruolo'] === 'utente' ? 'selected' : '' ?>>Utente</option>
-          <option value="admin"  <?= $utente['ruolo'] === 'admin'  ? 'selected' : '' ?>>Admin</option>
+
+          <option value="utente"
+            <?= $utente['ruolo'] === 'utente'
+              ? 'selected'
+              : '' ?>>
+
+            Utente
+
+          </option>
+
+          <option value="admin"
+            <?= $utente['ruolo'] === 'admin'
+              ? 'selected'
+              : '' ?>>
+
+            Admin
+
+          </option>
+
         </select>
+
       </div>
 
       <hr class="divider" />
 
-      <p class="section-note">Lascia vuoto se non vuoi cambiare la password</p>
+      <!-- messaggio password -->
+      <p class="section-note">
+        Lascia vuoto se non vuoi cambiare la password
+      </p>
 
+      <!-- nuova password -->
       <div class="form-group">
+
         <label>Nuova password:</label>
+
         <div class="password-wrapper">
-          <input type="password" id="password" name="password" />
-          <button type="button" class="toggle-password" onclick="toggle('password')"></button>
+
+          <input type="password"
+                 id="password"
+                 name="password" />
+
+          <button type="button"
+                  class="toggle-password"
+                  onclick="toggle('password')"></button>
+
         </div>
+
       </div>
 
+      <!-- conferma password -->
       <div class="form-group">
+
         <label>Conferma password:</label>
+
         <div class="password-wrapper">
-          <input type="password" id="conferma" name="conferma" />
-          <button type="button" class="toggle-password" onclick="toggle('conferma')"></button>
+
+          <input type="password"
+                 id="conferma"
+                 name="conferma" />
+
+          <button type="button"
+                  class="toggle-password"
+                  onclick="toggle('conferma')"></button>
+
         </div>
+
       </div>
 
+      <!-- mostra messaggi -->
       <?php if ($msg): ?>
+
         <p class="reg-msg <?= $tipo ?>">
+
           <?= htmlspecialchars($msg) ?>
+
         </p>
+
       <?php endif; ?>
 
+      <!-- pulsante salvataggio -->
       <div class="button-container">
-        <button type="submit" class="button donate-button">Salva modifiche</button>
+
+        <button type="submit"
+                class="button donate-button">
+
+          Salva modifiche
+
+        </button>
+
       </div>
 
     </form>
+
   </div>
+
 </main>
 
+<!-- stile pagina -->
 <style>
+
 .form-box {
   background: #fff;
   max-width: 600px;
@@ -257,15 +366,35 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   border-radius: 6px;
   border: 1px solid;
 }
-.reg-msg.errore   { color: #c0392b; background: #fdecea; border-color: #e74c3c; }
-.reg-msg.successo { color: #1e7e34; background: #eafaf1; border-color: #27ae60; }
+
+.reg-msg.errore {
+  color: #c0392b;
+  background: #fdecea;
+  border-color: #e74c3c;
+}
+
+.reg-msg.successo {
+  color: #1e7e34;
+  background: #eafaf1;
+  border-color: #27ae60;
+}
+
 </style>
 
+<!-- script javascript -->
 <script>
+
+// funzione mostra o nasconde password
 function toggle(id) {
+
   const input = document.getElementById(id);
-  input.type = input.type === "password" ? "text" : "password";
+
+  input.type =
+    input.type === "password"
+      ? "text"
+      : "password";
 }
+
 </script>
 
 </body>
