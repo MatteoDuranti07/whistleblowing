@@ -1,4 +1,5 @@
 <?php
+// avvia la sessione utente
 session_start();
 
 if (
@@ -6,6 +7,7 @@ if (
     !isset($_SESSION['ruolo']) ||
     $_SESSION['ruolo'] !== 'admin'
 ) {
+// reindirizza l'utente
     header("Location: login.html");
     exit;
 }

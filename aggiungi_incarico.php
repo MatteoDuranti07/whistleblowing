@@ -1,7 +1,9 @@
 <?php
+// avvia la sessione utente
 session_start();
 
 if (!isset($_SESSION['id']) || !isset($_SESSION['ruolo']) || $_SESSION['ruolo'] !== 'admin') {
+// reindirizza l'utente
     header("Location: login.html");
     exit;
 }
@@ -14,19 +16,24 @@ $password = '';
 $utenti = [];
 
 try {
+// connessione al database con pdo
     $pdo = new PDO(
         "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
         $dbuser,
         $password,
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
+// prepara la query sql
     $stmt = $pdo->prepare("SELECT id, nome, username FROM utenti WHERE ruolo = 'utente' ORDER BY nome ASC");
+// esegue la query
     $stmt->execute();
+// recupera i dati dal database
     $utenti = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $utenti = [];
 }
 
+// controlla il tipo di richiesta
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_utente   = intval($_POST['id_utente'] ?? 0);
     $titolo      = trim($_POST['titolo'] ?? '');
@@ -42,16 +49,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             $scadenza_val = $scadenza ?: null;
+// prepara la query sql
             $stmt = $pdo->prepare("
                 INSERT INTO incarichi (id_utente, id_assegnato_da, titolo, descrizione, scadenza, stato)
                 VALUES (?, ?, ?, ?, ?, ?)
             ");
+// esegue la query
             $stmt->execute([$id_utente, $_SESSION['id'], $titolo, $descrizione, $scadenza_val, $stato_inc]);
             $_SESSION['stato'] = 'ok';
         } catch (PDOException $e) {
             $_SESSION['stato'] = 'errore';
         }
     }
+// reindirizza l'utente
     header('Location: ' . $_SERVER['PHP_SELF']);
     exit;
 }
@@ -82,6 +92,7 @@ unset($_SESSION['stato']);
 
   <main class="content-wrapper">
 
+<!-- modulo principale -->
     <form class="card-form" method="POST" id="moduloIncarico">
 
       <?php if (empty($utenti)): ?>
@@ -150,7 +161,9 @@ unset($_SESSION['stato']);
 
   </main>
 
+<!-- script javascript -->
   <script>
+// funzione javascript
     window.addEventListener('pageshow', function () {
       document.getElementById('moduloIncarico').reset();
     });

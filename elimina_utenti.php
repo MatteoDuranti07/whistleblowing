@@ -1,4 +1,5 @@
 <?php
+// avvia la sessione utente
 session_start();
 
 if (
@@ -7,6 +8,7 @@ if (
     $_SESSION['ruolo'] !== 'admin'
 ) {
 
+// restituisce una risposta json
     echo json_encode([
         'success' => false,
         'message' => 'Accesso negato'
@@ -15,8 +17,10 @@ if (
     exit;
 }
 
+// reindirizza l'utente
 header('Content-Type: application/json');
 
+// connessione al database
 $conn = new mysqli(
     "localhost",
     "root",
@@ -26,6 +30,7 @@ $conn = new mysqli(
 
 if ($conn->connect_error) {
 
+// restituisce una risposta json
     echo json_encode([
         'success' => false,
         'message' => 'Errore connessione database'
@@ -41,6 +46,7 @@ if (
 
     $id = (int) $_POST['id'];
 
+// prepara la query sql
     $stmt = $conn->prepare("
         DELETE FROM utenti
         WHERE id = ?
@@ -48,14 +54,17 @@ if (
 
     $stmt->bind_param("i", $id);
 
+// esegue la query
     if ($stmt->execute()) {
 
+// restituisce una risposta json
         echo json_encode([
             'success' => true
         ]);
 
     } else {
 
+// restituisce una risposta json
         echo json_encode([
             'success' => false,
             'message' => 'Errore eliminazione'
@@ -66,6 +75,7 @@ if (
 
 } else {
 
+// restituisce una risposta json
     echo json_encode([
         'success' => false,
         'message' => 'Richiesta non valida'

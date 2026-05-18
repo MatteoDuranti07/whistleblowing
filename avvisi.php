@@ -1,7 +1,9 @@
 <?php
+// avvia la sessione utente
 session_start();
 
 if (!isset($_SESSION['id'])) {
+// reindirizza l'utente
     header("Location: login.html");
     exit;
 }
@@ -42,6 +44,7 @@ if (!isset($_SESSION['id'])) {
       $errore = false;
 
       try {
+// connessione al database con pdo
           $pdo = new PDO(
               "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
               $dbuser,
@@ -49,6 +52,7 @@ if (!isset($_SESSION['id'])) {
               [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
           );
           $stmt = $pdo->query("SELECT titolo, testo, data_pubblicazione FROM avvisi ORDER BY data_pubblicazione DESC");
+// recupera i dati dal database
           $avvisi = $stmt->fetchAll(PDO::FETCH_ASSOC);
       } catch (PDOException $e) {
           $errore = true;

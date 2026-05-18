@@ -1,9 +1,11 @@
 /* MENU LATERALE */
+// funzione javascript
 function Menu() {
    document.getElementById("sideMenu").classList.toggle("active");
 }
 
 /* LOGOUT */
+// funzione javascript
 function logout() {
   if (confirm("Sei sicuro di voler uscire?")) {
     window.location.href = "logout.php";
@@ -12,6 +14,7 @@ function logout() {
 
 
 /* MOSTRA / NASCONDI PASSWORD */
+// funzione javascript
 function vediPassword() {
   const input = document.getElementById("password");
   const button = document.querySelector(".toggle-password");
@@ -28,6 +31,7 @@ function vediPassword() {
 }
 
 /* SEGNALAZIONE ANONIMA */
+// funzione javascript
 function inviaSegnalazione() {
   const descrizione = document.getElementById("descrizione").value;
 
@@ -41,4 +45,3 @@ function inviaSegnalazione() {
 
   document.getElementById("moduloSegnalazione").reset();
 }
-

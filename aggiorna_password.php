@@ -1,4 +1,5 @@
 <?php
+// avvia la sessione utente
 session_start();
 
 $host     = 'localhost';
@@ -10,6 +11,7 @@ $msg  = "";
 $tipo = "";
 
 if (!isset($_SESSION['id'])) {
+// reindirizza l'utente
     header("Location: login.html");
     exit;
 }
@@ -18,6 +20,7 @@ $id = $_SESSION['id'];
 
 try {
 
+// connessione al database con pdo
     $pdo = new PDO(
         "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
         $user,
@@ -29,28 +32,34 @@ try {
 
     require 'mail.php';
 
+// prepara la query sql
     $stmt = $pdo->prepare("
         SELECT id, nome, username, email, password
         FROM utenti
         WHERE id = ?
     ");
 
+// esegue la query
     $stmt->execute([$id]);
 
+// invia una richiesta al server
     $utente = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$utente) {
         session_destroy();
+// reindirizza l'utente
         header("Location: login.html");
         exit;
     }
 
+// controlla il tipo di richiesta
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $password_attuale = $_POST['password_attuale'] ?? '';
         $nuova_password   = $_POST['password'] ?? '';
         $conferma         = $_POST['conferma'] ?? '';
 
+// controlla la password inserita
         if (!password_verify($password_attuale, $utente['password'])) {
 
             $msg  = "La password attuale non è corretta";
@@ -68,14 +77,17 @@ try {
 
         } else {
 
+// crea la password criptata
             $hash = password_hash($nuova_password, PASSWORD_DEFAULT);
 
+// prepara la query sql
             $upd = $pdo->prepare("
                 UPDATE utenti
                 SET password = ?
                 WHERE id = ?
             ");
 
+// esegue la query
             $upd->execute([$hash, $id]);
 
             emailCambioPassword(
@@ -162,6 +174,7 @@ try {
 
         <hr class="divider">
 
+<!-- modulo principale -->
         <form method="POST">
 
             <div class="form-group">
@@ -333,8 +346,10 @@ try {
 
 </style>
 
+<!-- script javascript -->
 <script>
 
+// funzione javascript
 function toggle(id) {
 
     const input = document.getElementById(id);

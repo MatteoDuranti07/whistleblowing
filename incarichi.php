@@ -1,7 +1,9 @@
 <?php
+// avvia la sessione utente
 session_start();
 
 if (!isset($_SESSION['id'])) {
+// reindirizza l'utente
     header("Location: login.html");
     exit;
 }
@@ -43,19 +45,23 @@ $id_utente = $_SESSION['id'];
       $errore    = false;
 
       try {
+// connessione al database con pdo
           $pdo = new PDO(
               "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
               $dbuser,
               $password,
               [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
           );
+// prepara la query sql
           $stmt = $pdo->prepare("
               SELECT titolo, descrizione, scadenza, stato
               FROM incarichi
               WHERE id_utente = ?
               ORDER BY scadenza ASC
           ");
+// esegue la query
           $stmt->execute([$id_utente]);
+// recupera i dati dal database
           $incarichi = $stmt->fetchAll(PDO::FETCH_ASSOC);
       } catch (PDOException $e) {
           $errore = true;

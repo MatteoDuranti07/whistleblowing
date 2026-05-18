@@ -1,4 +1,5 @@
 <?php
+// avvia la sessione utente
 session_start();
 
 if (
@@ -6,6 +7,7 @@ if (
     !isset($_SESSION['ruolo']) ||
     $_SESSION['ruolo'] !== 'admin'
 ) {
+// reindirizza l'utente
     header("Location: login.html");
     exit;
 }
@@ -17,6 +19,7 @@ $pass = '';
 
 try {
 
+// connessione al database con pdo
     $pdo = new PDO(
         "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
         $user,
@@ -37,25 +40,30 @@ if (
     isset($_POST['id'])
 ) {
 
+// reindirizza l'utente
     header('Content-Type: application/json');
 
     try {
 
         $id = (int) $_POST['id'];
 
+// prepara la query sql
         $stmt = $pdo->prepare("
             DELETE FROM segnalazioni
             WHERE id = ?
         ");
 
+// esegue la query
         $stmt->execute([$id]);
 
+// restituisce una risposta json
         echo json_encode([
             'success' => true
         ]);
 
     } catch (PDOException $e) {
 
+// restituisce una risposta json
         echo json_encode([
             'success' => false,
             'message' => $e->getMessage()
@@ -71,6 +79,7 @@ if (
     isset($_POST['ids'])
 ) {
 
+// reindirizza l'utente
     header('Content-Type: application/json');
 
     try {
@@ -79,6 +88,7 @@ if (
 
         if (!is_array($ids) || empty($ids)) {
 
+// restituisce una risposta json
             echo json_encode([
                 'success' => false,
                 'message' => 'Nessun ID valido'
@@ -92,19 +102,23 @@ if (
             array_fill(0, count($ids), '?')
         );
 
+// prepara la query sql
         $stmt = $pdo->prepare("
             DELETE FROM segnalazioni
             WHERE id IN ($placeholders)
         ");
 
+// esegue la query
         $stmt->execute($ids);
 
+// restituisce una risposta json
         echo json_encode([
             'success' => true
         ]);
 
     } catch (PDOException $e) {
 
+// restituisce una risposta json
         echo json_encode([
             'success' => false,
             'message' => $e->getMessage()
@@ -132,6 +146,7 @@ $segnalazioni = $pdo->query("
     SELECT *
     FROM segnalazioni
     ORDER BY id $order
+// recupera i dati dal database
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 $totale = count($segnalazioni);
@@ -331,6 +346,7 @@ $totale = count($segnalazioni);
 
         <?php if ($totale > 0): ?>
 
+<!-- tabella dati -->
         <table id="tabella-segnalazioni">
 
             <thead>
@@ -426,8 +442,10 @@ $totale = count($segnalazioni);
 
 </main>
 
+<!-- script javascript -->
 <script>
 
+// funzione javascript
 function toggleSelectAll(el) {
 
     const checkboxes =
@@ -441,6 +459,7 @@ function toggleSelectAll(el) {
 }
 
 
+// funzione javascript
 function eliminaSegnalazione(el) {
 
     if (!confirm(
@@ -455,6 +474,7 @@ function eliminaSegnalazione(el) {
 }
 
 
+// funzione javascript
 function eliminaMultiple() {
 
     const selezionate =
@@ -487,6 +507,7 @@ function eliminaMultiple() {
 }
 
 
+// funzione javascript
 function eliminaDalDatabase(ids) {
 
     const formData = new URLSearchParams();
@@ -503,6 +524,7 @@ function eliminaDalDatabase(ids) {
         );
     }
 
+// invia una richiesta al server
     fetch('', {
 
         method: 'POST',
@@ -560,6 +582,7 @@ function eliminaDalDatabase(ids) {
 }
 
 
+// funzione javascript
 function aggiornaTotale() {
 
     const righe =

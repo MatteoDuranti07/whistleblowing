@@ -1,4 +1,5 @@
 <?php
+// avvia la sessione utente
 session_start();
 
 if (
@@ -6,6 +7,7 @@ if (
     !isset($_SESSION['ruolo']) ||
     $_SESSION['ruolo'] !== 'admin'
 ) {
+// reindirizza l'utente
     header("Location: login.html");
     exit;
 }
@@ -16,6 +18,7 @@ $user     = 'root';
 $password = '';
 
 try {
+// connessione al database con pdo
     $pdo = new PDO(
         "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
         $user,
@@ -26,6 +29,7 @@ try {
     $utenti = $pdo->query("
         SELECT id, nome, username, ruolo, data_registrazione
         FROM utenti
+// recupera i dati dal database
     ")->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
@@ -157,6 +161,7 @@ try {
       Nuovo utente
     </a>
 
+<!-- tabella dati -->
     <table>
 
       <thead>
@@ -220,8 +225,10 @@ try {
 
 </main>
 
+<!-- script javascript -->
 <script>
 
+// funzione javascript
 function eliminaUtente(el) {
 
     if (!confirm('Sei sicuro di voler eliminare questo utente?')) {
@@ -231,6 +238,7 @@ function eliminaUtente(el) {
     const id   = el.getAttribute('data-id');
     const riga = document.getElementById('riga-utente-' + id);
 
+// invia una richiesta al server
     fetch('elimina_utenti.php', {
         method: 'POST',
         headers: {

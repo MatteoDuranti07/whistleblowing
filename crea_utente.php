@@ -1,4 +1,5 @@
 <?php
+// avvia la sessione utente
 session_start();
 
 if (
@@ -6,6 +7,7 @@ if (
     !isset($_SESSION['ruolo']) ||
     $_SESSION['ruolo'] !== 'admin'
 ) {
+// reindirizza l'utente
     header("Location: login.html");
     exit;
 }
@@ -13,8 +15,10 @@ if (
 $msg = "";
 $tipo = "";
 
+// controlla il tipo di richiesta
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
+// connessione al database
     $conn = new mysqli(
         "localhost",
         "root",
@@ -64,6 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         } else {
 
+// prepara la query sql
             $check = $conn->prepare("
                 SELECT id
                 FROM utenti
@@ -73,6 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $check->bind_param("ss", $username, $email);
 
+// esegue la query
             $check->execute();
 
             $check->store_result();
@@ -84,11 +90,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             } else {
 
+// crea la password criptata
                 $hash = password_hash(
                     $password,
                     PASSWORD_DEFAULT
                 );
 
+// prepara la query sql
                 $stmt = $conn->prepare("
                     INSERT INTO utenti
                     (nome, username, email, password, ruolo)
@@ -104,8 +112,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $ruolo
                 );
 
+// esegue la query
                 if ($stmt->execute()) {
 
+// reindirizza l'utente
                     header(
                         "Location: gestione_utenti.php?success=1"
                     );
@@ -154,6 +164,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
   <div class="form-box">
 
+<!-- modulo principale -->
     <form method="POST">
 
       <div class="form-group">
@@ -233,7 +244,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 .reg-msg.successo { color: #1e7e34; background: #eafaf1; border-color: #27ae60; }
 </style>
 
+<!-- script javascript -->
 <script>
+// funzione javascript
 function toggle(id) {
   const input = document.getElementById(id);
   input.type = input.type === "password" ? "text" : "password";
